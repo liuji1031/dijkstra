@@ -80,3 +80,50 @@ class Map:
         self.map = np.where(obs_map==1,obs_map,self.map)
         self.map_inflate = np.where(obs_map_inflate==1,
                                     obs_map_inflate,self.map_inflate)
+        
+        def plot(self,show=True):
+        """show the map
+
+        Args:
+            show (bool, optional): _description_. Defaults to True.
+        """
+        plt.imshow(self.map+self.map_inflate)
+        plt.gca().invert_yaxis()
+        plt.colorbar()
+        if show:
+            plt.show()
+
+    def in_range(self, x, y):
+        """return true if (x, y) within the range of the map
+
+        Args:
+            x (_type_): _description_
+            y (_type_): _description_
+        """
+        if x>=0 and x<self.width and y>=0 and y<self.height:
+            return True
+        else:
+            return False
+
+    def on_obstacle(self, x, y, use_inflate=True):
+        """check if x, y coord is a valid point on the map, i.e., within range
+        and obstacle free
+
+        Args:
+            x (_type_): _description_
+            y (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        
+        if use_inflate:
+            if self.map_inflate[y,x] < 1:
+                return False
+            else:
+                return True
+        else:
+            if self.map[y,x] < 1:
+                return False
+            else:
+                return True
