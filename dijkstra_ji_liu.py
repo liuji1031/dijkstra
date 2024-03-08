@@ -127,3 +127,44 @@ class Map:
                 return False
             else:
                 return True
+    
+class MapCoord:
+    """create a custom class to represent each map coordinate.
+    attribute cost_to_come is used as the value for heap actions.
+    for this purpose, the <, > and = operations are overridden
+
+    """
+    def __init__(self,
+                 coord,
+                 cost_to_come,
+                 parent=None) -> None:
+        self.coord = coord
+        self.cost_to_come = cost_to_come
+        self.parent = parent
+
+    def __lt__(self, other):
+        return self.cost_to_come < other.cost_to_come
+    
+    def __gt__(self, other):
+        return self.cost_to_come > other.cost_to_come
+    
+    def __eq__(self, other):
+        return self.cost_to_come == other.cost_to_come
+    
+    def set_parent(self, parent):
+        self.parent = parent
+
+    def same_coord(self, other):
+        return self.coord == other.coord
+    
+    def update(self, cost_to_come, parent):
+        self.cost_to_come = cost_to_come
+        self.parent = parent
+    
+    @property
+    def x(self):
+        return self.coord[0]
+    
+    @property
+    def y(self):
+        return self.coord[1]
