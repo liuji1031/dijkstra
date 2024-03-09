@@ -417,3 +417,31 @@ def ask_for_coord(map:Map, mode="initial"):
         
         break
     return (x,y)
+
+if __name__ == "__main__":
+
+    # create map object
+    custom_map = Map()
+
+    # define the corners of all the convex obstacles
+    obs_corners = []
+    obs_corners.append(Map.get_corners_rect(upper_left=(100,500),w=75,h=400))
+    obs_corners.append(Map.get_corners_rect(upper_left=(275,400),w=75,h=400))
+    obs_corners.append(Map.get_corners_hex(center=(650,250),radius=150))
+    obs_corners.append(Map.get_corners_rect(upper_left=(900,450),w=200,h=75))
+    obs_corners.append(Map.get_corners_rect(upper_left=(1020,375),w=80,h=250))
+    obs_corners.append(Map.get_corners_rect(upper_left=(900,125),w=200,h=75))
+
+    # add all obstacles to map
+    for c in obs_corners:
+        custom_map.add_obstacle(corners=c)
+
+    # ask user for init and goal position
+    init_coord = ask_for_coord(custom_map, mode="initial")
+    goal_coord = ask_for_coord(custom_map, mode="goal")
+
+    # create Dijkstra solver
+    d = Dijkstra(init_coord=init_coord,goal_coord=goal_coord,map=custom_map)
+
+    # run the algorithm
+    d.run()
