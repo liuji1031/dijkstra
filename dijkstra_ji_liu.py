@@ -234,3 +234,147 @@ class Dijkstra:
                                                     artist='Matplotlib',
                                                     comment='Path search'))
         self.writer.setup(self.fig, outfile="./animation.mp4",dpi=72)
+
+    @property
+    def map_plot_data(self):
+        return 3*(self.map.map+self.map.map_inflate)
+
+    def add_to_closed(self, c : MapCoord):
+        """add the popped coordinate to the closed list
+
+        Args:
+            c (MapCoord): _description_
+        """
+        self.closed_list[c.y][c.x] = c
+        self.closed_plot_data[c.y][c.x] = 1
+
+    def at_goal(self, c : MapCoord):
+        """return true if c is at goal coordinate
+
+        Args:
+            c (MapCoord): _description_
+        """
+        return self.goal_coord.same_coord(c)
+    
+    def initiate_coord(self, coord, parent : MapCoord, edge_cost):
+        """initiate new coordinate to be added to the open list
+
+        Args:
+            coord (_type_): _description_
+            parent (_type_): _description_
+        """
+        # create new MapCoord obj
+        new_c = MapCoord(coord=coord,
+                         cost_to_come=parent.cost_to_come+edge_cost,
+                         parent=parent)
+        
+        # push to open list heaqp
+        heapq.heappush(self.open_list, new_c)
+        
+        # mark as added
+        self.open_list_added[new_c.y][new_c.x] = new_c
+
+    def print_open_len(self):
+        print("current open list length: ", len(self.open_list))
+
+    def update_coord(self, x, y, new_cost_to_come, parent):
+        """update the coordinate with new cost to come and new parent
+
+        Args:
+            x (_type_): _description_
+            y (_type_): _description_
+            new_cost_to_come (_type_): _description_
+            parent (_type_): _description_
+        """
+        self.open_list_added[y][x].update(new_cost_to_come,parent)
+    
+    def on_obstacle(self, x, y):
+        """check if coord (x,y) is on the obstacle
+        return true if there is obstacle
+
+        Args:
+            x (_type_): _description_
+            y (_type_): _description_
+        """
+        return self.map[y,x]>0
+
+    def visualize_search(self):
+        """visualize the search process
+        """
+        self.map_plot.set_data(self.map_plot_data+self.closed_plot_data)
+        self.fig.canvas.flush_events()
+        self.fig.canvas.draw()
+        self.writer.grab_frame()
+        plt.pause(0.001)
+
+    def visualize_path(self):
+        """visualize the result of backtrack
+        """
+        path = np.array(self.path_to_goal)
+        plt.plot(path[:,0],path[:,1],color='r',linewidth=1)
+
+        n = path.shape[0]
+        ind = np.linspace(0,n-1,50).astype(int)
+        for i in ind:
+            self.robot_plot.set_data([path[i,0],],[path[i,1],])
+            self.fig.canvas.flush_events()
+            self.fig.canvas.draw()
+            self.writer.grab_frame()
+            plt.pause(0.001)
+        
+        # add some more static frames with the robot at goal
+        for _ in range(20):
+            plt.pause(0.005)
+            self.writer.grab_frame()
+
+        # finish writing video
+        self.writer.finish()
+
+    def run(self):
+        """run the actual Dikstra's algorithm
+        """
+        i = 0
+        while self.goal_reached is False and len(self.open_list) > 0:
+            # pop the coord with the min cost to come
+            c = heapq.heappop(self.open_list)
+            self.add_to_closed(c)
+
+            if self.at_goal(c):
+                self.goal_reached = True
+                print("Path found!")
+                self.backtrack(goal_coord=c)
+                break
+            
+            # not at goal, go through reachable point from c
+            for a, cost in zip(self.actions,self.actions_cost):
+                x,y = c.coord[0]+a[0], c.coord[1]+a[1]
+                
+                self.map : Map
+                # skip if new coord not valid
+                if self.map.in_range(x,y) is False or \
+                    self.map.on_obstacle(x,y) is True:
+                    continue
+                
+                # skip if new coord in closed list already
+                if self.closed_list[y][x] is not None:
+                    continue
+
+                if self.open_list_added[y][x] is None: 
+                    # not added to the open list, do initialization first
+                    self.initiate_coord(coord=(x,y),parent=c,edge_cost=cost)
+                else:
+                    # update the coordinate
+                    cost_to_come_ = c.cost_to_come + cost
+                    next_c : MapCoord = self.open_list_added[y][x]
+                    if cost_to_come_ < next_c.cost_to_come:
+                        next_c .update(cost_to_come_,c)
+                        heapq.heapify(self.open_list)
+
+            # visualize the result at some fixed interval
+            i+=1
+            if i%4000==0:
+                self.visualize_search()
+        
+        if self.goal_reached:
+            # show the path to the goal
+            self.visualize_path()
