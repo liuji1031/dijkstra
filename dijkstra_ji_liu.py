@@ -427,10 +427,10 @@ if __name__ == "__main__":
     obs_corners = []
     obs_corners.append(Map.get_corners_rect(upper_left=(100,500),w=75,h=400))
     obs_corners.append(Map.get_corners_rect(upper_left=(275,400),w=75,h=400))
-    obs_corners.append(Map.get_corners_hex(center=(650,250),radius=150))
     obs_corners.append(Map.get_corners_rect(upper_left=(900,450),w=200,h=75))
     obs_corners.append(Map.get_corners_rect(upper_left=(1020,375),w=80,h=250))
     obs_corners.append(Map.get_corners_rect(upper_left=(900,125),w=200,h=75))
+    obs_corners.append(Map.get_corners_hex(center=(650,250),radius=150))
 
     # add all obstacles to map
     for c in obs_corners:
