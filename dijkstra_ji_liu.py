@@ -168,3 +168,69 @@ class MapCoord:
     @property
     def y(self):
         return self.coord[1]
+    
+class Dijkstra:
+    # implement the Dijkstra's search algorithm
+
+    def __init__(self,
+                 init_coord,
+                 goal_coord,
+                 map : Map):
+        
+        self.init_coord = MapCoord(init_coord, cost_to_come=0.0)
+        self.goal_coord = MapCoord(goal_coord, cost_to_come=np.inf)
+        self.map = map
+
+        self.open_list = [self.init_coord]
+        heapq.heapify(self.open_list)
+        # use an array to track which coordinate has been added to the open list
+        self.open_list_added = \
+            [[None for i in range(map.width)] for j in range(map.height)]
+
+        # use an array to store the visited map coordinates; 
+        # None means not visited. otherwise, stores the actual MapCoord obj
+        self.closed_list = \
+            [[None for i in range(map.width)] for j in range(map.height)]
+
+        self.goal_reached = False
+        self.path_to_goal = None
+
+        # create the list of possible actions
+        self.actions = []
+        for ax in np.arange(-1,2):
+            for ay in np.arange(-1,2):
+                if ax==0 and ay==0:
+                    continue
+                else:
+                    self.actions.append((ax,ay))
+        self.actions = np.array(self.actions)
+        self.actions_cost = np.round(np.linalg.norm(self.actions,ord=2,axis=1),
+                                     decimals=1)
+        
+        # create the handles for the plots
+        self.fig = plt.figure(figsize=(12,6))
+        self.ax = self.fig.add_subplot()
+        self.ax.invert_yaxis()
+        # show the map
+        self.map_plot = self.ax.imshow( self.map_plot_data,
+                                        cmap='bone_r',vmin=0,vmax=6,
+                                        extent=(0,self.map.width,0,
+                                               self.map.height),
+                                        resample=False,
+                                        aspect='equal',
+                                        origin='lower',
+                                        interpolation='none')
+        # plot goal location
+        self.ax.plot(self.goal_coord.x, self.goal_coord.y, marker="*",ms=10)
+        # plot robot location
+        self.robot_plot = self.ax.plot(self.init_coord.x, self.init_coord.y,
+                                       marker="o",ms=5,c="r")[0]
+        # create an array of 0s and 1s to track closed list, for plot purpose
+        self.closed_plot_data = np.zeros_like(self.map.map)
+        self.fig.show()
+
+        # create movie writer
+        self.writer = FFMpegWriter(fps=15, metadata=dict(title='Dijkstra',
+                                                    artist='Matplotlib',
+                                                    comment='Path search'))
+        self.writer.setup(self.fig, outfile="./animation.mp4",dpi=72)
