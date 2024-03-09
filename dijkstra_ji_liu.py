@@ -392,3 +392,28 @@ class Dijkstra:
 
         self.path_to_goal.append(c.coord)
         self.path_to_goal.reverse()
+
+def ask_for_coord(map:Map, mode="initial"):
+    """function for asking user input of init or goal coordinate; if user input
+    is not valid, ask again
+
+    Args:
+        msg (_type_): _description_
+    """
+    while True:
+        x = input(f"Please input {mode} coordinate x: ")
+        y = input(f"Please input {mode} coordinate y: ")
+
+        x = int(x)
+        y = int(y)
+
+        if x<0 or x>=map.width or y<0 or y>=map.height:
+            print("Coordinate out of range of map, please try again")
+            continue
+        
+        if map.map_inflate[y,x] > 0:
+            print("Coordinate within obstacle, please try again")
+            continue
+        
+        break
+    return (x,y)
