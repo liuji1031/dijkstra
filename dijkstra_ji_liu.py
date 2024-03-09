@@ -378,3 +378,17 @@ class Dijkstra:
         if self.goal_reached:
             # show the path to the goal
             self.visualize_path()
+
+    def backtrack(self, goal_coord : MapCoord):
+        """backtrack to get the path to the goal from the initial position
+
+        """
+        self.path_to_goal = []
+        c = goal_coord
+
+        while c.same_coord(self.init_coord) is False:
+            self.path_to_goal.append(c.coord)
+            c = c.parent
+
+        self.path_to_goal.append(c.coord)
+        self.path_to_goal.reverse()
