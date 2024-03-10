@@ -175,12 +175,14 @@ class Dijkstra:
     def __init__(self,
                  init_coord,
                  goal_coord,
-                 map : Map):
+                 map : Map,
+                 savevid=False):
         
         self.init_coord = MapCoord(init_coord, cost_to_come=0.0)
         self.goal_coord = MapCoord(goal_coord, cost_to_come=np.inf)
         self.map = map
-
+        self.savevid = savevid
+                     
         self.open_list = [self.init_coord]
         heapq.heapify(self.open_list)
         # use an array to track which coordinate has been added to the open list
@@ -230,10 +232,11 @@ class Dijkstra:
         self.fig.show()
 
         # create movie writer
-        self.writer = FFMpegWriter(fps=15, metadata=dict(title='Dijkstra',
-                                                    artist='Matplotlib',
-                                                    comment='Path search'))
-        self.writer.setup(self.fig, outfile="./animation.mp4",dpi=72)
+        if self.savevid:
+            self.writer = FFMpegWriter(fps=15, metadata=dict(title='Dijkstra',
+                                                        artist='Matplotlib',
+                                                        comment='Path search'))
+            self.writer.setup(self.fig, outfile="./animation.mp4",dpi=72)
 
     @property
     def map_plot_data(self):
@@ -304,7 +307,8 @@ class Dijkstra:
         self.map_plot.set_data(self.map_plot_data+self.closed_plot_data)
         self.fig.canvas.flush_events()
         self.fig.canvas.draw()
-        self.writer.grab_frame()
+        if self.savevid:
+            self.writer.grab_frame()
         plt.pause(0.001)
 
     def visualize_path(self):
@@ -319,16 +323,19 @@ class Dijkstra:
             self.robot_plot.set_data([path[i,0],],[path[i,1],])
             self.fig.canvas.flush_events()
             self.fig.canvas.draw()
-            self.writer.grab_frame()
+            if self.savevid:
+                self.writer.grab_frame()
             plt.pause(0.001)
         
         # add some more static frames with the robot at goal
         for _ in range(20):
             plt.pause(0.005)
-            self.writer.grab_frame()
+            if self.savevid:
+                self.writer.grab_frame()
 
         # finish writing video
-        self.writer.finish()
+        if self.savevid:
+            self.writer.finish()
 
     def run(self):
         """run the actual Dikstra's algorithm
@@ -419,7 +426,13 @@ def ask_for_coord(map:Map, mode="initial"):
     return (x,y)
 
 if __name__ == "__main__":
-
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--savevid", type=bool, default=False,
+                        help="whether to save the demo as video")
+    args = parser.parse_args()
+    savevid = args.savevid
+    
     # create map object
     custom_map = Map()
 
