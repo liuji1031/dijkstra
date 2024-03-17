@@ -81,7 +81,7 @@ class Map:
         self.map_inflate = np.where(obs_map_inflate==1,
                                     obs_map_inflate,self.map_inflate)
         
-        def plot(self,show=True):
+    def plot(self,show=True):
         """show the map
 
         Args:
